@@ -87,7 +87,7 @@ public int Handler_WaveStatsMenu(Handle menu, MenuAction action, int client, int
 			// case 5: DisplayMenu(WaveStatsMenu_BombReset, client, MENU_TIME_FOREVER);
 		}
 	}
-	else if (action == MenuAction_Cancel)
+	else if (action == MenuAction_Cancel && IsClientInGame(client))
 		PrintToChat(client, "[MvMStats] Type !wavestats to bring up this menu again.");
 }
 
