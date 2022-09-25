@@ -43,7 +43,7 @@ public Action Command_WaveStats(int client, int args)
 {
 	if (!hasWaveBegun)
 	{
-		CPrintToChat(client, "[{unique}MVMStats{default}] A wave hasn't happened yet.");
+		CReplyToCommand(client, "[{unique}MVMStats{default}] A wave hasn't happened yet.");
 		return Plugin_Handled;
 	}
 	
