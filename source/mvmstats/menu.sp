@@ -88,7 +88,7 @@ public int Handler_WaveStatsMenu(Handle menu, MenuAction action, int client, int
 		}
 	}
 	else if (action == MenuAction_Cancel && IsClientInGame(client))
-		PrintToChat(client, "[MvMStats] Type !wavestats to bring up this menu again.");
+		CPrintToChat(client, "[{unique}MvMStats{default}] Type {unique}!wavestats{default} to bring up this menu again.");
 }
 
 public int Handler_WaveStatsMenu_ALL(Handle menu, MenuAction action, int client, int slot)
