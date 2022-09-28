@@ -1,5 +1,6 @@
 #include <sourcemod>
 #include <tf2_stocks>
+#include <multicolors>
 
 int currentWave;
 bool hasWaveBegun;
@@ -20,7 +21,7 @@ public Plugin myinfo =
 	name = "[TF2] MvM Wave Statistics",
 	author = "Officer Spy",
 	description = "Reports details about a game after a wave has ended.",
-	version = "1.0.1",
+	version = "1.0.2",
 	url = ""
 };
 
@@ -42,7 +43,7 @@ public Action Command_WaveStats(int client, int args)
 {
 	if (!hasWaveBegun)
 	{
-		ReplyToCommand(client, "[MVMStats] A wave hasn't happened yet.");
+		CReplyToCommand(client, "[{unique}MVMStats{default}] A wave hasn't happened yet.");
 		return Plugin_Handled;
 	}
 	
