@@ -22,7 +22,21 @@ void CreateWaveStatsMenu()
 
 void UpdateWaveStatsMenu()
 {
-	SetMenuTitle(WaveStatsMenu, "[MvM Wave Statistics]\n%s\nWave %d", GetMissionName(), currentWave); //update wave index
+	int rsrc = FindEntityByClassname(-1, "tf_objective_resource");
+	
+	if (rsrc != -1)
+	{
+		int currentWave;
+		char missionName[256];
+		
+		currentWave = GetEntProp(rsrc, Prop_Send, "m_nMannVsMachineWaveCount");
+		
+		GetEntPropString(rsrc, Prop_Send, "m_iszMvMPopfileName", missionName, sizeof(missionName));
+		ReplaceString(missionName, sizeof(missionName), "scripts/population/", "");
+		ReplaceString(missionName, sizeof(missionName), ".pop", "");
+		
+		SetMenuTitle(WaveStatsMenu, "[MvM Wave Statistics]\n%s\nWave %d", missionName, currentWave); //update wave index
+	}
 	
 	delete WaveStatsMenu_RobotKills;
 	delete WaveStatsMenu_Damage;
@@ -89,10 +103,14 @@ public int Handler_WaveStatsMenu(Handle menu, MenuAction action, int client, int
 	}
 	else if (action == MenuAction_Cancel && IsClientInGame(client))
 		CPrintToChat(client, "[{unique}MvMStats{default}] Type {unique}!wavestats{default} to bring up this menu again.");
+	
+	return 0;
 }
 
 public int Handler_WaveStatsMenu_ALL(Handle menu, MenuAction action, int client, int slot)
 {
 	if (action == MenuAction_Cancel)
 		DisplayMenu(WaveStatsMenu, client, MENU_TIME_FOREVER);
+	
+	return 0;
 }

@@ -2,7 +2,8 @@
 #include <tf2_stocks>
 #include <multicolors>
 
-int currentWave;
+#define STATS_DISPLAY_TIME	15
+
 bool hasWaveBegun;
 
 int robotKills[MAXPLAYERS + 1];
@@ -21,7 +22,7 @@ public Plugin myinfo =
 	name = "[TF2] MvM Wave Statistics",
 	author = "Officer Spy",
 	description = "Reports details about a game after a wave has ended.",
-	version = "1.0.2",
+	version = "1.0.3",
 	url = ""
 };
 
@@ -35,8 +36,10 @@ public void OnPluginStart()
 	HookEvent("mvm_pickup_currency", Event_PickupCurrency);
 	HookEvent("player_used_powerup_bottle", Event_PowerupBottle);
 	HookEvent("teamplay_flag_event", Event_FlagObjective);
-	HookEvent("mvm_wave_complete", Event_WaveComplete, EventHookMode_Pre);
+	HookEvent("mvm_wave_complete", Event_WaveComplete);
 	HookEvent("player_death", Event_PlayerDeath);
+	HookEvent("teamplay_round_win", Event_RoundWin); //Used for wave losses
+	HookEvent("mvm_sniper_headshot_currency", Event_HeadshotCurrency);
 }
 
 public Action Command_WaveStats(int client, int args)
@@ -68,8 +71,6 @@ public void Event_BeginWave(Event event, const char[] name, bool dontBroadcast)
 	for (int i = 1; i <= MaxClients; i++)
 		if (IsClientInGame(i))
 			ResetWaveStats(i);
-	
-	currentWave = event.GetInt("wave_index") + 1;
 }
 
 public void Event_PlayerHurt(Event event, const char[] name, bool dontBroadcast)
@@ -139,7 +140,7 @@ public void Event_WaveComplete(Event event, const char[] name, bool dontBroadcas
 	
 	for (int i = 1; i <= MaxClients; i++)
 		if (IsClientInGame(i) && !IsFakeClient(i))
-			DisplayMenu(WaveStatsMenu, i, 30);
+			DisplayMenu(WaveStatsMenu, i, STATS_DISPLAY_TIME);
 }
 
 public void Event_PlayerDeath(Event event, const char[] name, bool dontBroadcast)
@@ -160,6 +161,27 @@ public void Event_PlayerDeath(Event event, const char[] name, bool dontBroadcast
 		{
 			robotKills[attacker]++;
 		}
+	}
+}
+
+public void Event_RoundWin(Event event, const char[] name, bool dontBroadcast)
+{
+	UpdateWaveStatsMenu();
+	hasWaveBegun = true;
+	
+	for (int i = 1; i <= MaxClients; i++)
+		if (IsClientInGame(i) && !IsFakeClient(i))
+			DisplayMenu(WaveStatsMenu, i, STATS_DISPLAY_TIME);
+}
+
+public void Event_HeadshotCurrency(Event event, const char[] name, bool dontBroadcast)
+{
+	int client = GetClientOfUserId(event.GetInt("userid"));
+	
+	if (TF2_GetClientTeam(client) == TFTeam_Red)
+	{
+		int credits = event.GetInt("currency");
+		cashMoney[client] += credits;
 	}
 }
 
