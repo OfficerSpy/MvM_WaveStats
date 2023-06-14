@@ -102,7 +102,7 @@ public int Handler_WaveStatsMenu(Handle menu, MenuAction action, int client, int
 		}
 	}
 	else if (action == MenuAction_Cancel && IsClientInGame(client))
-		CPrintToChat(client, "[{unique}MvMStats{default}] Type {unique}!wavestats{default} to bring up this menu again.");
+		CPrintToChat(client, "%s {default}Type {unique}!wavestats{default} to bring up this menu again.", PLUGIN_PREFIX);
 	
 	return 0;
 }
