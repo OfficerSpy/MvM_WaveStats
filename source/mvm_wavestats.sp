@@ -35,7 +35,7 @@ public Plugin myinfo =
 	name = "[TF2] MvM Wave Statistics",
 	author = "Officer Spy",
 	description = "Reports details about a game after a wave has ended.",
-	version = "1.0.4",
+	version = "1.0.5",
 	url = ""
 };
 
@@ -87,6 +87,7 @@ public void OnMapStart()
 {
 	CreateWaveStatsMenu();
 	hasWaveBegun = false;
+	ResetTimeStats();
 }
 
 public void OnClientDisconnect(int client)
