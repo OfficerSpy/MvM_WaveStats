@@ -1,23 +1,25 @@
-Handle WaveStatsMenu;
-Handle WaveStatsMenu_RobotKills;
-Handle WaveStatsMenu_Damage;
-Handle WaveStatsMenu_DamageTank;
-Handle WaveStatsMenu_Credits;
-Handle WaveStatsMenu_Canteens;
-Handle WaveStatsMenu_FlagDefend;
+Handle g_hWaveStatsMenu;
+Handle g_hWaveStatsMenu_RobotKills;
+Handle g_hWaveStatsMenu_Damage;
+Handle g_hWaveStatsMenu_DamageTank;
+Handle g_hWaveStatsMenu_Credits;
+Handle g_hWaveStatsMenu_Canteens;
+Handle g_hWaveStatsMenu_FlagDefend;
 // Handle WaveStatsMenu_BombReset;
 
 void CreateWaveStatsMenu()
 {
-	WaveStatsMenu = CreateMenu(Handler_WaveStatsMenu);
-	// SetMenuTitle(WaveStatsMenu, "[MvM Wave Statistics]");
-	AddMenuItem(WaveStatsMenu, "0", "Robots Killed");
-	AddMenuItem(WaveStatsMenu, "1", "Robot Damage");
-	AddMenuItem(WaveStatsMenu, "2", "Tank Damage");
-	AddMenuItem(WaveStatsMenu, "3", "Money Collected");
-	AddMenuItem(WaveStatsMenu, "4", "Canteens Used");
-	AddMenuItem(WaveStatsMenu, "5", "Bombs Defended");
-	// AddMenuItem(WaveStatsMenu, "5", "Bombs Reset");
+	delete g_hWaveStatsMenu;
+	
+	g_hWaveStatsMenu = CreateMenu(Handler_WaveStatsMenu);
+	// SetMenuTitle(g_hWaveStatsMenu, "[MvM Wave Statistics]");
+	AddMenuItem(g_hWaveStatsMenu, "0", "Robots Killed");
+	AddMenuItem(g_hWaveStatsMenu, "1", "Robot Damage");
+	AddMenuItem(g_hWaveStatsMenu, "2", "Tank Damage");
+	AddMenuItem(g_hWaveStatsMenu, "3", "Money Collected");
+	AddMenuItem(g_hWaveStatsMenu, "4", "Canteens Used");
+	AddMenuItem(g_hWaveStatsMenu, "5", "Bombs Defended");
+	// AddMenuItem(g_hWaveStatsMenu, "5", "Bombs Reset");
 }
 
 void UpdateWaveStatsMenu()
@@ -26,62 +28,61 @@ void UpdateWaveStatsMenu()
 	
 	if (rsrc != -1)
 	{
-		int currentWave;
-		char missionName[256];
+		int currentWave = TF2_GetMannVsMachineWaveCount(rsrc);
+		char missionName[PLATFORM_MAX_PATH]; TF2_GetMvMPopfileName(rsrc, missionName, sizeof(missionName));
 		
-		currentWave = GetEntProp(rsrc, Prop_Send, "m_nMannVsMachineWaveCount");
-		
-		GetEntPropString(rsrc, Prop_Send, "m_iszMvMPopfileName", missionName, sizeof(missionName));
+		//Trim the extras
 		ReplaceString(missionName, sizeof(missionName), "scripts/population/", "");
 		ReplaceString(missionName, sizeof(missionName), ".pop", "");
 		
-		SetMenuTitle(WaveStatsMenu, "[MvM Wave Statistics]\n%s\nWave %d", missionName, currentWave); //update wave index
+		//Update title with current wave number
+		SetMenuTitle(g_hWaveStatsMenu, "[MvM Wave Statistics]\n%s\nWave %d", missionName, currentWave);
 	}
 	
-	delete WaveStatsMenu_RobotKills;
-	delete WaveStatsMenu_Damage;
-	delete WaveStatsMenu_DamageTank;
-	delete WaveStatsMenu_Credits;
-	delete WaveStatsMenu_Canteens;
-	delete WaveStatsMenu_FlagDefend;
+	delete g_hWaveStatsMenu_RobotKills;
+	delete g_hWaveStatsMenu_Damage;
+	delete g_hWaveStatsMenu_DamageTank;
+	delete g_hWaveStatsMenu_Credits;
+	delete g_hWaveStatsMenu_Canteens;
+	delete g_hWaveStatsMenu_FlagDefend;
 	
-	WaveStatsMenu_RobotKills = CreateMenu(Handler_WaveStatsMenu_ALL);
-	WaveStatsMenu_Damage = CreateMenu(Handler_WaveStatsMenu_ALL);
-	WaveStatsMenu_DamageTank = CreateMenu(Handler_WaveStatsMenu_ALL);
-	WaveStatsMenu_Credits = CreateMenu(Handler_WaveStatsMenu_ALL);
-	WaveStatsMenu_Canteens = CreateMenu(Handler_WaveStatsMenu_ALL);
-	WaveStatsMenu_FlagDefend = CreateMenu(Handler_WaveStatsMenu_ALL);
+	g_hWaveStatsMenu_RobotKills = CreateMenu(Handler_WaveStatsMenu_ALL);
+	g_hWaveStatsMenu_Damage = CreateMenu(Handler_WaveStatsMenu_ALL);
+	g_hWaveStatsMenu_DamageTank = CreateMenu(Handler_WaveStatsMenu_ALL);
+	g_hWaveStatsMenu_Credits = CreateMenu(Handler_WaveStatsMenu_ALL);
+	g_hWaveStatsMenu_Canteens = CreateMenu(Handler_WaveStatsMenu_ALL);
+	g_hWaveStatsMenu_FlagDefend = CreateMenu(Handler_WaveStatsMenu_ALL);
 	
-	SetMenuTitle(WaveStatsMenu_RobotKills, "Robots Killed");
-	SetMenuTitle(WaveStatsMenu_Damage, "Damage");
-	SetMenuTitle(WaveStatsMenu_DamageTank, "Tank Damage");
-	SetMenuTitle(WaveStatsMenu_Credits, "Money Collected");
-	SetMenuTitle(WaveStatsMenu_Canteens, "Canteens Used");
-	SetMenuTitle(WaveStatsMenu_FlagDefend, "Bombs Defended");
+	SetMenuTitle(g_hWaveStatsMenu_RobotKills, "Robots Killed");
+	SetMenuTitle(g_hWaveStatsMenu_Damage, "Damage");
+	SetMenuTitle(g_hWaveStatsMenu_DamageTank, "Tank Damage");
+	SetMenuTitle(g_hWaveStatsMenu_Credits, "Money Collected");
+	SetMenuTitle(g_hWaveStatsMenu_Canteens, "Canteens Used");
+	SetMenuTitle(g_hWaveStatsMenu_FlagDefend, "Bombs Defended");
 	
 	for (int i = 1; i <= MaxClients; i++)
 	{
-		if (IsClientInGame(i) && TF2_GetClientTeam(i) == TFTeam_Red)
+		if (IsClientInGame(i) && TF2_GetClientTeam(i) == TFTeam_Red && !TF2_IsPlayerInCondition(i, TFCond_Reprogrammed))
 		{
 			char displayBuffer[256];
 			
-			Format(displayBuffer, sizeof(displayBuffer), "%N (%s): %d", i, NamePlayerClass(i), robotKills[i]);
-			AddMenuItem(WaveStatsMenu_RobotKills, "0", displayBuffer, ITEMDRAW_DISABLED);
+			Format(displayBuffer, sizeof(displayBuffer), "%N (%s): %d", i, NamePlayerClass(i), g_iRobotKills[i]);
+			AddMenuItem(g_hWaveStatsMenu_RobotKills, "0", displayBuffer, ITEMDRAW_DISABLED);
 			
-			Format(displayBuffer, sizeof(displayBuffer), "%N (%s): %d", i, NamePlayerClass(i), robotDamage[i]);
-			AddMenuItem(WaveStatsMenu_Damage, "0", displayBuffer, ITEMDRAW_DISABLED);
+			Format(displayBuffer, sizeof(displayBuffer), "%N (%s): %d", i, NamePlayerClass(i), g_iRobotDamage[i]);
+			AddMenuItem(g_hWaveStatsMenu_Damage, "0", displayBuffer, ITEMDRAW_DISABLED);
 			
-			Format(displayBuffer, sizeof(displayBuffer), "%N (%s): %d", i, NamePlayerClass(i), tankDamage[i]);
-			AddMenuItem(WaveStatsMenu_DamageTank, "0", displayBuffer, ITEMDRAW_DISABLED);
+			Format(displayBuffer, sizeof(displayBuffer), "%N (%s): %d", i, NamePlayerClass(i), g_iTankDamage[i]);
+			AddMenuItem(g_hWaveStatsMenu_DamageTank, "0", displayBuffer, ITEMDRAW_DISABLED);
 			
-			Format(displayBuffer, sizeof(displayBuffer), "%N (%s): %d", i, NamePlayerClass(i), cashMoney[i]);
-			AddMenuItem(WaveStatsMenu_Credits, "0", displayBuffer, ITEMDRAW_DISABLED);
+			Format(displayBuffer, sizeof(displayBuffer), "%N (%s): %d", i, NamePlayerClass(i), g_iCashMoney[i]);
+			AddMenuItem(g_hWaveStatsMenu_Credits, "0", displayBuffer, ITEMDRAW_DISABLED);
 			
-			Format(displayBuffer, sizeof(displayBuffer), "%N (%s): %d", i, NamePlayerClass(i), canteenUse[i]);
-			AddMenuItem(WaveStatsMenu_Canteens, "0", displayBuffer, ITEMDRAW_DISABLED);
+			Format(displayBuffer, sizeof(displayBuffer), "%N (%s): %d", i, NamePlayerClass(i), g_iCanteenUse[i]);
+			AddMenuItem(g_hWaveStatsMenu_Canteens, "0", displayBuffer, ITEMDRAW_DISABLED);
 			
-			Format(displayBuffer, sizeof(displayBuffer), "%N (%s): %d", i, NamePlayerClass(i), flagDefend[i]);
-			AddMenuItem(WaveStatsMenu_FlagDefend, "0", displayBuffer, ITEMDRAW_DISABLED);
+			Format(displayBuffer, sizeof(displayBuffer), "%N (%s): %d", i, NamePlayerClass(i), g_iFlagDefend[i]);
+			AddMenuItem(g_hWaveStatsMenu_FlagDefend, "0", displayBuffer, ITEMDRAW_DISABLED);
 		}
 	}
 }
@@ -92,25 +93,28 @@ public int Handler_WaveStatsMenu(Handle menu, MenuAction action, int client, int
 	{
 		switch(slot)
 		{
-			case 0: DisplayMenu(WaveStatsMenu_RobotKills, client, MENU_TIME_FOREVER);
-			case 1: DisplayMenu(WaveStatsMenu_Damage, client, MENU_TIME_FOREVER);
-			case 2: DisplayMenu(WaveStatsMenu_DamageTank, client, MENU_TIME_FOREVER);
-			case 3: DisplayMenu(WaveStatsMenu_Credits, client, MENU_TIME_FOREVER);
-			case 4: DisplayMenu(WaveStatsMenu_Canteens, client, MENU_TIME_FOREVER);
-			case 5: DisplayMenu(WaveStatsMenu_FlagDefend, client, MENU_TIME_FOREVER);
+			case 0: DisplayMenu(g_hWaveStatsMenu_RobotKills, client, MENU_TIME_FOREVER);
+			case 1: DisplayMenu(g_hWaveStatsMenu_Damage, client, MENU_TIME_FOREVER);
+			case 2: DisplayMenu(g_hWaveStatsMenu_DamageTank, client, MENU_TIME_FOREVER);
+			case 3: DisplayMenu(g_hWaveStatsMenu_Credits, client, MENU_TIME_FOREVER);
+			case 4: DisplayMenu(g_hWaveStatsMenu_Canteens, client, MENU_TIME_FOREVER);
+			case 5: DisplayMenu(g_hWaveStatsMenu_FlagDefend, client, MENU_TIME_FOREVER);
 			// case 5: DisplayMenu(WaveStatsMenu_BombReset, client, MENU_TIME_FOREVER);
 		}
 	}
 	else if (action == MenuAction_Cancel && IsClientInGame(client))
+	{
 		CPrintToChat(client, "%s {default}Type {unique}!wavestats{default} to bring up this menu again.", PLUGIN_PREFIX);
+	}
 	
 	return 0;
 }
 
+//Used for each stat-specific menu to just go back to the main
 public int Handler_WaveStatsMenu_ALL(Handle menu, MenuAction action, int client, int slot)
 {
 	if (action == MenuAction_Cancel)
-		DisplayMenu(WaveStatsMenu, client, MENU_TIME_FOREVER);
+		DisplayMenu(g_hWaveStatsMenu, client, MENU_TIME_FOREVER);
 	
 	return 0;
 }
