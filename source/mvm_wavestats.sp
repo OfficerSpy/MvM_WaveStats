@@ -43,7 +43,7 @@ public Plugin myinfo =
 	name = "[TF2] MvM Wave Statistics",
 	author = "Officer Spy",
 	description = "Reports details about a game after a wave has ended.",
-	version = "1.0.6",
+	version = "1.0.7",
 	url = ""
 };
 
@@ -265,7 +265,7 @@ public void Event_WaveComplete_Time(Event event, const char[] name, bool dontBro
 		
 	if (g_hWaveTimeTimer != null)
 	{
-		CloseHandle(g_hWaveTimeTimer);
+		KillTimer(g_hWaveTimeTimer);
 		g_hWaveTimeTimer = null;
 	}
 }
@@ -274,6 +274,7 @@ public void Event_WaveComplete_Time(Event event, const char[] name, bool dontBro
 public void Event_WaveFail_Time(Event event, const char[] name, bool dontBroadcast)
 {
 	g_iFailCounterTick++;
+	
 	if (g_iFailCounterTick > 3)
 		MissionRestarted();
 
@@ -312,7 +313,7 @@ public void Event_RestartRound_Time(Event event, const char[] name, bool dontBro
 {
 	if (g_hWaveTimeTimer != null)
 	{
-		CloseHandle(g_hWaveTimeTimer);
+		KillTimer(g_hWaveTimeTimer);
 		g_hWaveTimeTimer = null;
 	}
 }
@@ -367,7 +368,7 @@ float GetWaveSuccessTime()
 {
 	float success_time = 0.0;
 
-	for (int i = 0; i < sizeof(g_bWavePassed); i++)
+	for (int i = 1; i < sizeof(g_bWavePassed); i++)
 	{
 		if (g_bWavePassed[i])
 			success_time += g_flWaveTimes[i];
@@ -399,7 +400,7 @@ void DisplayWaveTimes()
 
 void DisplayWaveTimesTotal(int client = 0)
 {
-	int resource = FindEntityByClassname(-1,"tf_objective_resource");
+	int resource = FindEntityByClassname(-1, "tf_objective_resource");
 	int max_wave = TF2_GetMannVsMachineMaxWaveCount(resource);
 
 	char timestr[64];
@@ -407,28 +408,41 @@ void DisplayWaveTimesTotal(int client = 0)
 	
 	for (int i = 1; i <= max_wave; i++)
 	{
-		WriteTime(g_flWaveTimes[i], timestr, 64);
-		Format(strprint, 256, "\x07%s[Wave %d] Time spent:\x07%s %s", g_sWaveTimeTextColor1, i, g_sWaveTimeTextColor2, timestr);
+		WriteTime(g_flWaveTimes[i], timestr, sizeof(timestr));
+		Format(strprint, sizeof(strprint), "\x07%s[Wave %d] Time spent:\x07%s %s", g_sWaveTimeTextColor1, i, g_sWaveTimeTextColor2, timestr);
 		
 		if (g_bWavePassed[i])
-			Format(strprint, 256, "%s %s", strprint, "\x077FFF8E(Success)");
+			Format(strprint, sizeof(strprint), "%s %s", strprint, "\x077FFF8E(Success)");
 		else if (g_flWaveTimes[i] > 0)
-			Format(strprint, 256,"%s %s", strprint, "\x07FF5661(Fail)");
+			Format(strprint, sizeof(strprint),"%s %s", strprint, "\x07FF5661(Fail)");
 		else
-			Format(strprint, 256, "%s %s", strprint, "\x07FFF47F(Not played)");
+			Format(strprint, sizeof(strprint), "%s %s", strprint, "\x07FFF47F(Not played)");
 		
 		if (client == 0)
 			CPrintToChatAll(strprint);
 		else
 			CPrintToChat(client, strprint);
 	}
-
-	WriteTime(g_flWaveTimes[g_iLastWaveNumber], timestr, 64);
-	CPrintToChatAll("\x07%sTime spent on Wave %d:\x07%s %s", g_sWaveTimeTextColor1, g_iLastWaveNumber, g_sWaveTimeTextColor2, timestr);
-	WriteTime(GetWaveSuccessTime(), timestr, 64);
-	CPrintToChatAll("\x07%sTotal success time spent:\x07%s %s", g_sWaveTimeTextColor1, g_sWaveTimeTextColor2, timestr);
-	WriteTime(g_flWavesTotalTime, timestr, 64);
-	CPrintToChatAll("\x07%sTotal time spent:\x07%s %s", g_sWaveTimeTextColor1, g_sWaveTimeTextColor2, timestr);
+	
+	if (client > 0)
+	{
+		WriteTime(g_flWaveTimes[g_iLastWaveNumber], timestr, sizeof(timestr));
+		CPrintToChat(client, "\x07%sTime spent on Wave %d:\x07%s %s", g_sWaveTimeTextColor1, g_iLastWaveNumber, g_sWaveTimeTextColor2, timestr);
+		WriteTime(GetWaveSuccessTime(), timestr, sizeof(timestr));
+		CPrintToChat(client, "\x07%sTotal success time spent:\x07%s %s", g_sWaveTimeTextColor1, g_sWaveTimeTextColor2, timestr);
+		WriteTime(g_flWavesTotalTime, timestr, sizeof(timestr));
+		CPrintToChat(client, "\x07%sTotal time spent:\x07%s %s", g_sWaveTimeTextColor1, g_sWaveTimeTextColor2, timestr);
+	}
+	else
+	{
+		//TODO: change this as rather multiple calls of PrintToChatAll is rather redundant
+		WriteTime(g_flWaveTimes[g_iLastWaveNumber], timestr, sizeof(timestr));
+		CPrintToChatAll("\x07%sTime spent on Wave %d:\x07%s %s", g_sWaveTimeTextColor1, g_iLastWaveNumber, g_sWaveTimeTextColor2, timestr);
+		WriteTime(GetWaveSuccessTime(), timestr, sizeof(timestr));
+		CPrintToChatAll("\x07%sTotal success time spent:\x07%s %s", g_sWaveTimeTextColor1, g_sWaveTimeTextColor2, timestr);
+		WriteTime(g_flWavesTotalTime, timestr, sizeof(timestr));
+		CPrintToChatAll("\x07%sTotal time spent:\x07%s %s", g_sWaveTimeTextColor1, g_sWaveTimeTextColor2, timestr);
+	}
 }
 
 void MissionRestarted()
